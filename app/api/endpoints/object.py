@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.crud import some_model_crud
 from app.core.db import get_async_session
-from app.core.user import current_user, current_superuser
+from app.core.user import current_superuser, current_user
 from app.schemas.object import ObjectCreate, ObjectRead, ObjectUpdate
 
 router = APIRouter(tags=['objects'])
@@ -20,7 +20,7 @@ async def get_objects_list(
     all_objects = await some_model_crud.get_multi(session)
     if len(all_objects) == 0:
         raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND,
+            status_code=HTTPStatus.OK,
             detail='Список объектов пуст!'
         )
     return all_objects

@@ -17,7 +17,7 @@ get_user_manager_context = contextlib.asynccontextmanager(get_user_manager)
 
 
 async def create_user(
-        email: EmailStr, password: str,  firstname: str, is_superuser: bool = False
+        email: EmailStr, password: str, firstname: str, is_superuser: bool = False
 ) -> User:
     """Создаёт и возвращет экземпляр пользователя."""
     try:

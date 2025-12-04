@@ -1,6 +1,6 @@
-from fastapi_users import schemas
 from typing import Optional
 
+from fastapi_users import schemas
 from pydantic import BaseModel, Field
 
 
@@ -8,7 +8,6 @@ class UserFIO(BaseModel):
     firstname: str = Field(..., min_length=2, max_length=254)
     surname: Optional[str] = Field(None, min_length=2, max_length=254)
     patronymic: Optional[str] = Field(None, min_length=2, max_length=254)
-
 
 
 class UserRead(schemas.BaseUser[int], UserFIO):
