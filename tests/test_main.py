@@ -29,7 +29,7 @@ class TestAPI:
     @pytest.mark.parametrize("endpoint", [("get", "/objects"),
                                           ("get", "/objects/1")])
     async def test_authorized_user_can_view_objects(
-        self, authenticated_client: AsyncClient, endpoint,
+        self, authenticated_client: AsyncClient, endpoint, 
     ):
         """
         Авторизованный пользователь может просматривать объекты.
@@ -45,7 +45,35 @@ class TestAPI:
         """
         Авторизованный пользователь может добавить запись.
         """
-        response = await authenticated_client.post("/objects",
-                                                   data=json.dumps(NEW_OBJECT))
+        response = await authenticated_client.post(
+            "/objects", data=json.dumps(NEW_OBJECT)
+        )
         assert response.status_code == status.HTTP_201_CREATED
         assert NEW_OBJECT.get("name") in response.text
+
+
+    async def test_authorized_user_cant_change_and_delete_object(
+        self, authenticated_client: AsyncClient
+    ):
+        """
+        Авторизованный пользователь не может изменить и удалить запись.
+        """
+        response = await authenticated_client.put(
+            "/objects/1", data=json.dumps(NEW_OBJECT)
+        )
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        response = await authenticated_client.delete("/objects/1")
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+    async def test_super_user_can_change_and_delete_object(
+        self, superuser_client: AsyncClient
+    ):
+        """
+        Superuser может изменить и удалить запись.
+        """
+        response = await superuser_client.put("/objects/1",
+                                              data=json.dumps(NEW_OBJECT))
+        assert response.status_code == status.HTTP_200_OK
+        response = await superuser_client.delete("/objects/1")
+        assert response.status_code == status.HTTP_204_NO_CONTENT

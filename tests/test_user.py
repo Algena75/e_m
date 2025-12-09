@@ -4,7 +4,9 @@ import pytest
 from fastapi import status
 from httpx import AsyncClient
 
-NEW_USER = dict(email="user@example.com",
+from .fixtures.fixture_data import app
+
+NEW_USER = dict(email="new_user@example.com",
                 firstname="Username",
                 password="string")
 
@@ -28,7 +30,8 @@ class TestAuth:
         """
         new_user_token = await client.post(
             "/auth/jwt/login",
-            data={'username': "user@example.com", 'password': "string"}
+            data={'username': NEW_USER["email"],
+                  'password': NEW_USER['password']}
         )
         assert new_user_token.status_code == status.HTTP_200_OK
         assert "access_token" in new_user_token.json()
@@ -39,7 +42,8 @@ class TestAuth:
 
     @pytest.mark.parametrize("endpoint", [("get", "/users"),
                                           ("get", "/users/me")])
-    async def test_new_user_can_view_users(self, client: AsyncClient, endpoint):
+    async def test_new_user_can_view_users(self, 
+                                           client: AsyncClient, endpoint):
         """
         Пользователь по токену получает доступ к списку пользователей и личной
         странице.
@@ -48,3 +52,17 @@ class TestAuth:
             client, endpoint[0]
         )(endpoint[1], headers={'Authorization': NEW_USER["access_token"]})
         assert response.status_code == status.HTTP_200_OK
+
+
+    @pytest.mark.parametrize("endpoint", [("delete", "/users/1")])
+    async def test_superuser_can_delete_users(self,
+                                              superuser_client: AsyncClient,
+                                              endpoint):
+        """
+        Суперпользователь может удалять пользователей.
+
+        """
+        print(app.dependency_overrides)
+        response = await getattr(superuser_client, endpoint[0])(endpoint[1])
+        assert response.status_code == status.HTTP_200_OK
+        assert 'Пользователь с id=1 деактивирован' in response.text

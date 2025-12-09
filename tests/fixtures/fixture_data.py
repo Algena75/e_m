@@ -9,17 +9,20 @@ from app.core.user import current_superuser, current_user
 from app.main import app
 from app.schemas.user import UserCreate
 
-authenticated_user = UserCreate(
-    email="user@example.com",
-    firstname="Admin",
+superuser = UserCreate(
     password="qwerty",
-    is_superuser=False
+    firstname='superuser',
+    email='superuser@example.com',
+    is_active=True,
+    is_superuser=True,
 )
-super_user = UserCreate(
-    email="superuser@example.com",
-    firstname="Superuser",
+
+authenticated_user = UserCreate(
     password="qwerty",
-    is_superuser=True
+    firstname='user',
+    email='user@example.com',
+    is_active=True,
+    is_superuser=False,
 )
 
 @pytest.fixture(scope="session")
@@ -46,7 +49,8 @@ async def async_db_engine():
 
 @pytest.fixture(scope='session')
 async def async_db(async_db_engine):
-    testing_session_local = sessionmaker(async_db_engine, class_=AsyncSession,
+    testing_session_local = sessionmaker(async_db_engine,
+                                         class_=AsyncSession,
                                          expire_on_commit=False)
     async with testing_session_local() as session:
         await session.begin()
@@ -55,25 +59,22 @@ async def async_db(async_db_engine):
 
 
 @pytest.fixture(scope='session')
-async def client():
-    async with AsyncClient(app=app,
-                           base_url="http://localhost") as client:
-        if app.dependency_overrides.get(current_user):
-            del app.dependency_overrides[current_user]
+async def client(async_db):
+    app.dependency_overrides = {}
+    app.dependency_overrides[get_async_session] = lambda: async_db
+    async with AsyncClient(app=app, base_url="http://localhost") as client:
         yield client
 
 
 @pytest.fixture(scope='session')
-async def authenticated_client(client, async_db: AsyncSession):
+async def authenticated_client(client):
     app.dependency_overrides[current_user] = lambda: authenticated_user
-    app.dependency_overrides[get_async_session] = lambda: async_db
     return client
 
 
 @pytest.fixture(scope='session')
-async def superuser_client(authenticated_client, async_db: AsyncSession):
-    app.dependency_overrides[current_superuser] = lambda: super_user
-    app.dependency_overrides[get_async_session] = lambda: async_db
+async def superuser_client(client):
+    app.dependency_overrides[current_superuser] = lambda: superuser
     return client
 
 
