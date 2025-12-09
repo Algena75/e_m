@@ -62,7 +62,7 @@ class TestAuth:
         Суперпользователь может удалять пользователей.
 
         """
-        print(app.dependency_overrides)
         response = await getattr(superuser_client, endpoint[0])(endpoint[1])
         assert response.status_code == status.HTTP_200_OK
-        assert 'Пользователь с id=1 деактивирован' in response.text
+        assert ('Пользователь с id=1 деактивирован' in
+                response.content.decode("utf-8"))

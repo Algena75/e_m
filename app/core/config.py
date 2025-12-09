@@ -2,7 +2,7 @@ import os
 from typing import Optional
 
 from dotenv import load_dotenv
-from pydantic import EmailStr
+from pydantic import EmailStr, ConfigDict
 from pydantic_settings import BaseSettings
 
 load_dotenv()
@@ -24,10 +24,10 @@ class Settings(BaseSettings):
     first_superuser_email: Optional[EmailStr] = None
     first_superuser_password: Optional[str] = None
 
-    class Config:
-        env_file = '.env'
+    model_config = ConfigDict(
+        env_file = '.env',
         extra = 'allow'
-
+    )
 
 settings = Settings()
 

@@ -49,7 +49,7 @@ class TestAPI:
             "/objects", data=json.dumps(NEW_OBJECT)
         )
         assert response.status_code == status.HTTP_201_CREATED
-        assert NEW_OBJECT.get("name") in response.text
+        assert NEW_OBJECT.get("name") in response.content.decode("utf-8")
 
 
     async def test_authorized_user_cant_change_and_delete_object(
